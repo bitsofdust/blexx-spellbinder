@@ -1,0 +1,38 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // The public Grimoire. Anyone may read; binding creates; nothing is
+    // edited after binding except the charge (upvote) counter, +1 at a time.
+    match /spells/{id} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['name', 'house', 'registry', 'seed'])
+                    && request.resource.data.votes == 0;
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['votes'])
+                    && request.resource.data.votes == resource.data.votes + 1;
+      allow delete: if false;   // takedowns via admin tooling later
+
+      // one vote per voter — the doc id IS the voter id, create-only
+      match /votes/{voterId} {
+        allow read: if true;
+        allow create: if true;
+        allow update, delete: if false;
+      }
+    }
+
+    // Registry counters: 900 per house, minted atomically, monotonic +1.
+    match /counters/{house} {
+      allow read: if true;
+      allow create: if house in ['CHA', 'DEV', 'MAN'] && request.resource.data.n == 1;
+      allow update: if request.resource.data.n == resource.data.n + 1
+                    && request.resource.data.n <= 900;
+      allow delete: if false;
+    }
+
+    // Kit orders: create-only from the client; reads/updates via admin + functions.
+    match /orders/{id} {
+      allow create: if true;
+      allow read, update, delete: if false;
+    }
+  }
+}

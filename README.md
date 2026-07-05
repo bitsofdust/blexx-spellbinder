@@ -40,8 +40,27 @@ Full framework: [SPEC.md](SPEC.md).
 - Registry numbers are provisional (seed-hash) until Firestore mints real
   ones atomically at P3. 900 per House, then the registry closes.
 
-## Roadmap
+## P3 — live
 
-P1 binder UI (blueprint map, house reveal, proof stage) → P2 jsPDF spellbook
-page → P3 Firebase `blexx-spellbinder` (Grimoire + upvotes + $20 kit orders
-via Stripe, pre-made spells orderable) → P4 polish. Rituals later.
+- Firebase project **blexx-spellbinder** (Firestore nam5, billing = BLEXX
+  account). `grimoire.js` (ES module): atomic registry mint (counters/{house},
+  900 cap), publish on LOCK & BIND, public Grimoire list (new / most charged),
+  one-charge-per-visitor votes. Rules in `firestore.rules`
+  (`firebase deploy --only firestore:rules`). Full localStorage fallback when
+  the cloud is unreachable.
+- Spellbook page = 2 sheets: SPEC (form-style tables) + RITUAL SURFACE (the
+  marked ring, found-component square, the words + sealed line).
+- Cast windows: moon phase + city triggers (no clocks, no Hour-Keeper).
+  Releases come from the actual kit components. BLEXX keychain in every kit.
+
+## Still to flip on
+
+1. **Stripe checkout** — `functions/` is ready (price $20 server-side,
+   webhook, email notify). Set secrets, `npm i` in functions/, then
+   `firebase deploy --only functions`, then wire the checkout URL into the
+   KIT buttons (currently "SOON").
+2. **Privacy pass before real launch** — published spells currently include
+   the detail phrase (it appears in the incantation). Decide what stays
+   public.
+3. Admin room (order status, takedowns) — port `admin.html` pattern.
+   Rituals + full Almanac later.

@@ -1,7 +1,8 @@
-// BLEXX SPELLBINDER — LEXICON v0
-// Handmade content libraries. Every list here is meant to be rewritten and
-// expanded in the BLEXX voice — entries marked v0 are working placeholders.
-// The engine only ever *selects* from these; no text is generated at runtime.
+// BLEXX SPELLBINDER — LEXICON v1
+// Handmade content libraries. The engine only ever *selects* from these;
+// no text is generated at runtime. Cast windows listen to the city, not a
+// clock. Every release line belongs to a real component. Expand freely —
+// more entries means more variety, never different behavior.
 
 const LEXICON = {
 
@@ -142,20 +143,31 @@ const LEXICON = {
   // modes: which interaction modes a component can serve.
   COMPONENT_POOL: [
     { id: 'ritual-sand',  name: 'a vial of ritual sand',        sku: 'DROP-02-SAND',   modes: ['place', 'apply'], breakable: false,
-      role: 'draws the boundary' },
+      role: 'draws the boundary',
+      release: 'Pour out the sand at a curb with a tree in it. The spell drains with it.' },
     { id: 'key-card',     name: 'a holographic key card',       sku: 'DROP-01-CARD',   modes: ['carry', 'place'], breakable: false,
-      role: 'holds the address of the want' },
+      role: 'holds the address of the want',
+      release: 'Retire the key card to a drawer you rarely open. It has held the address long enough.' },
     { id: 'reflect-pin',  name: 'a retro-reflective pin',       sku: 'DROP-03-PIN',    modes: ['wear'],           breakable: false,
-      role: 'signals under passing light' },
+      role: 'signals under passing light',
+      release: 'Unpin it and fix it to something that travels without you — a bag, a jacket, a friend.' },
     { id: 'paper-charm',  name: 'a paper charm (breakable)',    sku: 'KIT-PAPER-01',   modes: ['carry', 'place'], breakable: true,
-      role: 'meant to break to complete the spell' },
+      role: 'meant to break to complete the spell',
+      release: 'Tear the paper charm in half. The spell completes at the tear.' },
     { id: 'thread',       name: 'a length of waxed thread',     sku: 'KIT-THREAD-01',  modes: ['wear', 'use'],    breakable: true,
-      role: 'ties the vow; cut to release' },
+      role: 'ties the vow; cut to release',
+      release: 'Cut the thread. The spell completes at the snip.' },
     { id: 'chalk-tab',    name: 'a tablet of sigil chalk',      sku: 'KIT-CHALK-01',   modes: ['place', 'apply'], breakable: true,
-      role: 'marks what must be marked' },
+      role: 'marks what must be marked',
+      release: 'Wash the mark away with your own two hands.' },
     { id: 'match',        name: 'a single long match',          sku: 'KIT-MATCH-01',   modes: ['use'],            breakable: true,
-      role: 'one light, one chance' },
+      role: 'one light, one chance',
+      release: 'The spell spends itself with the match.' },
   ],
+
+  // In every kit, always — not drawn from the pool, not counted by charge.
+  KEYCHAIN: { id: 'keychain', name: 'the BLEXX keychain', sku: 'KIT-KEYCHAIN-01',
+    role: 'in every kit — clips the spell to your days' },
 
   // The one component the caster supplies themselves. Never sold.
   FOUND_COMPONENTS: [
@@ -167,6 +179,10 @@ const LEXICON = {
     'water that stood overnight',
     'a small stone from a place you want to return to',
     'the stub of a ticket',
+    'a receipt from the best day of last month',
+    'a bottle cap found face-up',
+    'the wrapper of something you shared',
+    'a takeout menu from a place you have never ordered from',
   ],
 
   MODES: {
@@ -200,9 +216,21 @@ const LEXICON = {
     'waning-crescent': 'in the last thin light before the sky goes dark',
   },
 
-  WINDOWS: [
-    { id: 'crossing-hour', label: 'The Crossing Hour', when: 'Tuesday, 11:11–11:22pm', note: 'pull is doubled' },
-    { id: 'hour-keepers',  label: 'The Hour-Keeper’s Pause', when: 'Tuesday, 4:14pm', note: 'stop what you are doing first' },
+  // City signals — the spell listens to the street, not a clock.
+  // Every spell is assigned one; the caster waits for the city to say go.
+  TRIGGERS: [
+    'the next traffic light you watch turn green',
+    'a car honking twice — exactly twice',
+    'the next dog that looks at you first',
+    'a leaf landing directly in front of your feet',
+    'a stranger laughing on the other side of the street',
+    'the streetlights coming on for the night',
+    'an elevator that opens before you press the button',
+    'a bus passing with every window empty',
+    'someone holding a door without looking back',
+    'the first siren after dark, once it has faded',
+    'two people wearing the same color crossing your path',
+    'a pigeon that refuses to move for you',
   ],
 
   DURATIONS: {
@@ -212,40 +240,41 @@ const LEXICON = {
   },
 
   RELEASES: {
-    low:    'Let it fade. When you forget the spell, it has finished its work.',
-    medium: 'Pour out the sand / retire the charm somewhere it will not be found.',
-    high:   'Break the breakable component. The spell completes at the snap.',
+    // low-charge spells fade; medium/high releases come from the actual
+    // components in the kit (each COMPONENT_POOL entry carries its own).
+    low: 'No release needed. Let it fade — when you forget the spell, it has finished its work.',
   },
 
-  // Step templates per mode. Slots: {kit}, {found}, {sigil}, {window},
-  // {incant}, {release}. Rendered in order.
+  // Step templates per mode. Slots: {kit}, {found}, {trigger}, {release}.
+  // Every slot must resolve against the ACTUAL kit — no orphan references.
+  // "The marked ring" is real: page 2 of the spellbook PDF (Ritual Surface).
   STEPS: {
     carry: [
-      'Lay this page flat. Place {kit} inside the marked ring.',
-      'Set {found} beside it and speak the words once, quietly.',
-      'Carry the charm with you for the spell’s duration. It rides; you drive.',
+      'Lay the Ritual Surface flat (page 2 of your spellbook page). Place {kit} inside the marked ring.',
+      'Set {found} just outside the ring and speak the words once, quietly.',
+      'Wait for the signal: {trigger}. Then pocket the charm — it rides; you drive.',
       '{release}',
     ],
     wear: [
       'Put on {kit} while looking at the sigil, not the mirror.',
       'Touch it once whenever the desire crosses your mind. Do not explain it to anyone.',
-      'Wear it through {window} at least once.',
+      'The spell arms itself at the signal: {trigger}. Be wearing it when the city speaks.',
       '{release}',
     ],
     place: [
-      'Choose the room the spell should influence. Draw the sigil there with {kit}.',
-      'Set {found} at the sigil’s edge, like a guest at a table.',
-      'Speak the words facing the door. Leave before you are tempted to tidy it.',
+      'Choose the room the spell should influence. Arrange {kit} there, echoing the sigil.',
+      'Set {found} at the edge of the arrangement, like a guest at a table.',
+      'Speak the words facing the door. Leave before you are tempted to tidy.',
       '{release}',
     ],
     use: [
-      'Wait for {window}.',
-      'Hold {kit} in your writing hand and {found} in the other.',
-      'Speak the words, then use the instrument exactly once. Once.',
+      'Keep {kit} with you and wait for the signal: {trigger}.',
+      'When it comes, take the instrument in your writing hand and {found} in the other.',
+      'Speak the words, then act — once. Only once.',
       '{release}',
     ],
     apply: [
-      'Pour a thin line of {kit} along a threshold you cross every day.',
+      'Draw a thin line with {kit} along a threshold you cross every day.',
       'Cross it while speaking the words. Do not look down.',
       'Let {found} stay on the far side overnight.',
       '{release}',

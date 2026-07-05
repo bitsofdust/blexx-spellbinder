@@ -139,21 +139,40 @@
     font-family: var(--font-display); font-weight: 800; font-size: 30px;
     letter-spacing: .01em; line-height: 1.15; margin-bottom: 14px;
   }
-  .grid2 { display: grid; grid-template-columns: 225px 1fr; gap: 22px; }
-  .sigilbox { border: 1px dashed var(--ink); border-radius: 12px; padding: 8px; color: var(--ink); }
-  .sigilbox canvas { width: 100%; height: auto; display: block; border-radius: 8px; background: #050507; }
-  .sigilbox .cap { font-family: var(--font-tech); font-size: 8.5px; letter-spacing: .16em; text-align: center; margin-top: 6px; }
-  .params { font-size: 12px; line-height: 1.75; }
-  .params b { color: var(--house); letter-spacing: .14em; font-size: 10px; font-weight: 700; }
+  .grid2 { display: grid; grid-template-columns: 225px 1fr; gap: 22px; align-items: start; }
+  .sigilframe { border: 1.5px dashed var(--ink); border-radius: 12px; padding: 8px; color: var(--ink); }
+  .sigilframe canvas { width: 100%; height: auto; display: block; border-radius: 8px; background: #050507; }
+  .sigilcol .cap { font-family: var(--font-tech); font-size: 8.5px; letter-spacing: .16em; text-align: center; margin-top: 7px; color: var(--ink); }
+
+  /* spec tables — the sheet reads like a filled-in form, not a list */
+  table.spec { width: 100%; border-collapse: collapse; font-size: 12px; border: 1.5px solid var(--ink); }
+  table.spec td { border: 1px solid color-mix(in srgb, var(--ink) 30%, transparent); padding: 7px 10px; vertical-align: top; line-height: 1.55; }
+  table.spec td.k {
+    font-family: var(--font-tech); font-size: 9.5px; letter-spacing: .12em;
+    color: var(--house); width: 96px; white-space: nowrap; background: color-mix(in srgb, var(--house) 6%, transparent);
+  }
+  table.spec td.sku { font-family: var(--font-tech); font-size: 9px; white-space: nowrap; width: 118px; }
+  table.spec td i { opacity: .75; }
+
   section.block { margin-top: 18px; }
   section.block h3 {
     font-family: var(--font-display); font-weight: 700; font-size: 12px; letter-spacing: .24em;
-    color: var(--house); border-bottom: 1px solid var(--ink); padding-bottom: 4px; margin-bottom: 8px;
+    color: var(--house); border-bottom: 1.5px solid var(--ink); padding-bottom: 4px; margin-bottom: 8px;
   }
-  .components li, .steps li { font-size: 12.5px; line-height: 1.7; }
-  .components ul, .steps ol { padding-left: 20px; }
-  .components small { font-family: var(--font-tech); font-size: 9px; }
-  .incant p { font-size: 13.5px; font-style: italic; line-height: 1.8; }
+  .incant-box { border: 1.5px solid var(--ink); border-radius: 10px; padding: 14px 16px; }
+  .incant-box p { font-size: 13.5px; font-style: italic; line-height: 1.8; }
+  ol.steps { list-style: none; counter-reset: rite; padding: 0; border: 1.5px solid var(--ink); }
+  ol.steps li {
+    counter-increment: rite; font-size: 12.5px; line-height: 1.6; padding: 8px 12px 8px 40px;
+    position: relative; border-bottom: 1px solid color-mix(in srgb, var(--ink) 30%, transparent);
+  }
+  ol.steps li:last-child { border-bottom: 0; }
+  ol.steps li::before {
+    content: counter(rite, decimal-leading-zero); position: absolute; left: 10px; top: 9px;
+    font-family: var(--font-tech); font-size: 10px; color: var(--house);
+  }
+  .ringnote { display: flex; gap: 14px; align-items: center; border: 1.5px dashed var(--ink); border-radius: 12px; padding: 10px 14px; font-size: 11.5px; line-height: 1.55; margin-top: 10px; }
+  .ringnote .ring { width: 36px; height: 36px; border: 2px dashed var(--house); border-radius: 50%; flex-shrink: 0; }
   .cipher-line { display: flex; gap: 4px; margin-top: 10px; color: var(--house); flex-wrap: wrap; }
   .glyph svg { width: 22px; height: 22px; display: block; }
   .glyph-gap { width: 12px; }
@@ -230,7 +249,16 @@
   .grimoire .reg { font-family: var(--font-tech); letter-spacing: .08em; }
   .grimoire .dot { display: inline-block; width: 10px; height: 10px; margin-right: 8px; }
   .grimoire button { background: none; border: 1.5px solid rgba(255,255,255,.4); border-radius: 999px; color: #fff; font-family: var(--font-tech); font-size: 10px; letter-spacing: .14em; padding: 5px 12px; cursor: pointer; }
-  .grimoire button:hover { border-color: var(--accent); color: var(--accent); }
+  .grimoire button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+  .grimoire .sorts { float: right; display: flex; gap: 6px; }
+  .grimoire .sorts button.on { border-color: var(--accent); color: var(--accent); }
+  .grimoire a.rowlink {
+    color: #fff; font-family: var(--font-tech); font-size: 10px; letter-spacing: .14em;
+    text-decoration: none; border: 1.5px solid rgba(255,255,255,.4); border-radius: 999px; padding: 5px 12px;
+  }
+  .grimoire a.rowlink:hover { border-color: var(--accent); color: var(--accent); }
+  .grimoire button.soon { opacity: .45; cursor: not-allowed; }
+  .grimoire button:disabled.charged { border-color: var(--accent); color: var(--accent); opacity: .7; }
   .grimoire .empty { color: rgba(255,255,255,.45); font-size: 12px; }
 
   /* alphabet verification strip */
@@ -305,6 +333,13 @@
     <div id="out"></div>
   </div>
 
+  <div class="grimoire" id="pubgrim">
+    <h3>THE PUBLIC GRIMOIRE — EVERY SPELL EVER BOUND
+      <span class="sorts"><button type="button" id="sort-new" class="on">NEW</button><button type="button" id="sort-top">MOST CHARGED</button></span>
+    </h3>
+    <div id="pubgrim-list"><p class="empty">Reaching the Grimoire…</p></div>
+  </div>
+
   <div class="grimoire">
     <h3>LOCAL GRIMOIRE — SPELLS BOUND ON THIS DEVICE</h3>
     <div id="grimoire-list"></div>
@@ -316,13 +351,14 @@
   </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="brand-assets.js?v=5"></script>
-<script src="lexicon.js?v=5"></script>
-<script src="engine.js?v=5"></script>
-<script src="sigil.js?v=5"></script>
-<script src="cipher.js?v=5"></script>
-<script src="pdf.js?v=5"></script>
-<script src="motion.js?v=5"></script>
+<script src="brand-assets.js?v=7"></script>
+<script src="lexicon.js?v=7"></script>
+<script src="engine.js?v=7"></script>
+<script src="sigil.js?v=7"></script>
+<script src="cipher.js?v=7"></script>
+<script src="pdf.js?v=7"></script>
+<script src="motion.js?v=7"></script>
+<script type="module" src="grimoire.js?v=7"></script>
 <script>
   const $ = id => document.getElementById(id);
   let current = null;        // the spell on the bench
@@ -458,16 +494,19 @@
       if (stopSigil) { stopSigil(); stopSigil = null; }
       document.body.removeAttribute('data-house');
       $('out').innerHTML = '<div class="blocked">THE SPELLBINDER DECLINES. ' +
-        'Always a blexxing, never a curse — rephrase the working in someone\'s favor.</div>';
+        'It binds only in someone\'s favor — rephrase the working.</div>';
       return;
     }
     document.body.dataset.house = spell.house;
     setCompanion(spell.house);
 
     const c = spell.components;
-    const compItems = c.kit.map(k =>
-      '<li>' + esc(k.name) + ' — <i>' + esc(k.role) + '</i> <small>[' + esc(k.sku) + ']</small></li>'
-    ).join('') + '<li><b>FOUND:</b> ' + esc(c.found) + ' <i>(you supply this)</i></li>';
+    const compRows = c.kit.map(k =>
+      '<tr><td>' + esc(k.name) + '</td><td><i>' + esc(k.role) + '</i></td><td class="sku">' + esc(k.sku) + '</td></tr>'
+    ).join('') +
+      (c.keychain ? '<tr><td>' + esc(c.keychain.name) + '</td><td><i>' + esc(c.keychain.role) + '</i></td><td class="sku">' + esc(c.keychain.sku) + '</td></tr>' : '') +
+      '<tr><td><b>FOUND</b>: ' + esc(c.found) + '</td><td><i>you supply this — the kit cannot contain it</i></td><td class="sku">—</td></tr>';
+    const specRow = (k, v) => '<tr><td class="k">' + k + '</td><td>' + v + '</td></tr>';
 
     const actions = state === 'proof'
       ? '<div class="actions">' +
@@ -487,7 +526,7 @@
       '<div class="page">' +
         '<div class="titleblock">' +
           markSpan() +
-          '<div>BLEXX STUDIOS</div><div>SHEET: SPELL / 1 OF 1</div>' +
+          '<div>BLEXX STUDIOS</div><div>SPEC + RITUAL SURFACE</div>' +
           '<div>' + esc(spell.modeLabel) + ' · ' + esc(spell.artifactType.toUpperCase()) + '</div>' +
           '<div class="reg">' + esc(spell.registry.label) + (spell.registry.provisional ? ' *' : '') + '</div>' +
         '</div>' +
@@ -495,28 +534,34 @@
         '<div class="blessing">' + esc(spell.blessing) + '</div>' +
         '<div class="spellname">' + esc(spell.name) + '</div>' +
         '<div class="grid2">' +
-          '<div class="sigilbox"><canvas id="sigil-live" width="500" height="500"></canvas>' +
-            '<div class="cap">FIG. A — LIVING SIGIL · SHAPE GRAMMAR · TESSELLATE + STACK</div></div>' +
-          '<div class="params">' +
-            '<b>DESIRE</b> · ' + esc(spell.desire) + '<br>' +
-            (spell.giftFor ? '<b>BOUND FOR</b> · ' + esc(spell.giftFor) + '<br>' : '') +
-            '<b>CASTER</b> · ' + esc(spell.casterMark) + '<br>' +
-            '<b>CHARGE</b> · ' + esc(spell.charge.toUpperCase()) + '<br>' +
-            '<b>CAST WINDOW</b> · ' + esc(spell.castWindow.text) + '<br>' +
-            '<b>DURATION</b> · ' + esc(spell.duration) +
-          '</div>' +
+          '<div class="sigilcol"><div class="sigilframe"><canvas id="sigil-live" width="500" height="500"></canvas></div>' +
+            '<div class="cap">FIG. A — LIVING SIGIL · TESSELLATE + STACK</div></div>' +
+          '<table class="spec">' +
+            specRow('DESIRE', esc(spell.desire)) +
+            (spell.giftFor ? specRow('BOUND FOR', esc(spell.giftFor)) : '') +
+            specRow('CASTER', esc(spell.casterMark)) +
+            specRow('CHARGE', esc(spell.charge.toUpperCase())) +
+            specRow('CAST WINDOW', esc(spell.castWindow.text)) +
+            specRow('DURATION', esc(spell.duration)) +
+          '</table>' +
         '</div>' +
-        '<section class="block components"><h3>COMPONENTS</h3><ul>' + compItems + '</ul></section>' +
-        '<section class="block incant"><h3>THE WORDS</h3>' +
+        '<section class="block components"><h3>COMPONENTS</h3>' +
+          '<table class="spec">' + compRows + '</table>' +
+          '<div class="ringnote"><div class="ring"></div><div>' +
+            'THE MARKED RING — page 2 of your spellbook page is the Ritual Surface. ' +
+            'Charge the kit components inside the ring before casting.' +
+          '</div></div>' +
+        '</section>' +
+        '<section class="block incant"><h3>THE WORDS</h3><div class="incant-box">' +
           spell.incantation.map(l => '<p>' + esc(l) + '</p>').join('') +
           '<div class="cipher-line" id="cipher"></div>' +
           '<div class="cipher-cap">SEALED LINE — DECODE WITH THE BLEXX ALPHABET</div>' +
-        '</section>' +
-        '<section class="block steps"><h3>THE PROCEDURE</h3><ol>' +
+        '</div></section>' +
+        '<section class="block"><h3>THE PROCEDURE</h3><ol class="steps">' +
           spell.steps.map(s => '<li>' + esc(s) + '</li>').join('') + '</ol></section>' +
         '<div class="pagefoot">' + markSpan() +
-          '<span>ALWAYS A BLEXXING · NEVER A CURSE</span>' +
           '<span>HOUSE OF ' + esc(spell.houseName) + '</span>' +
+          '<span>BLEXX.ME</span>' +
         '</div>' +
       '</div>' + actions + '</div>';
 
@@ -552,17 +597,87 @@
     }
   }
 
-  function lockAndBind() {
+  async function lockAndBind() {
     if (!current || locked) return;
-    const minted = mintRegistry(current);
+    const code = LEXICON.HOUSES[current.house].code;
+    let minted = null;
+    // real registry numbers come from the cloud (atomic, global, 900 cap);
+    // if the Grimoire is unreachable, the press still binds — locally
+    if (window.GRIMOIRE_CLOUD && GRIMOIRE_CLOUD.ready) {
+      try {
+        const n = await GRIMOIRE_CLOUD.mint(code);
+        minted = { provisional: false, number: n, label: 'BLX-' + code + '-' + String(n).padStart(3, '0') + '/900' };
+      } catch (e) { console.warn('cloud mint unavailable, minting locally:', e); }
+    }
+    if (!minted) minted = mintRegistry(current);
     if (!minted) {
       alert('The House of ' + current.houseName + ' registry has closed at 900/900.');
       return;
     }
     current.registry = minted;
     locked = true;
-    saveToGrimoire(current);           // Firestore publish goes here at P3
+    saveToGrimoire(current);
+    if (window.GRIMOIRE_CLOUD && GRIMOIRE_CLOUD.ready) {
+      GRIMOIRE_CLOUD.publish(current).then(renderPublicGrimoire)
+        .catch(e => console.warn('publish failed (spell still bound locally):', e));
+    }
     renderSpell(current, 'bound');
+  }
+
+  // ---- the public grimoire (cloud)
+  const VOTER_KEY = 'blx-voter-id', VOTED_KEY = 'blx-voted-v0';
+  function voterId() {
+    let v = localStorage.getItem(VOTER_KEY);
+    if (!v) {
+      v = 'v-' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+      localStorage.setItem(VOTER_KEY, v);
+    }
+    return v;
+  }
+  let pubSort = 'new';
+  async function renderPublicGrimoire() {
+    const el = $('pubgrim-list');
+    if (!window.GRIMOIRE_CLOUD || !GRIMOIRE_CLOUD.ready) {
+      el.innerHTML = '<p class="empty">The Grimoire is unreachable — spells bind locally for now.</p>';
+      return;
+    }
+    try {
+      const spells = await GRIMOIRE_CLOUD.list(pubSort);
+      if (!spells.length) {
+        el.innerHTML = '<p class="empty">The public Grimoire is empty. Bind the first spell.</p>';
+        return;
+      }
+      const voted = JSON.parse(localStorage.getItem(VOTED_KEY) || '{}');
+      el.innerHTML = '<table>' + spells.map(s =>
+        '<tr>' +
+          '<td><span class="dot" style="background:' + esc(s.houseColor || '#888') + '"></span>' + esc(s.name) + '</td>' +
+          '<td class="reg">' + esc(s.registry.label) + '</td>' +
+          '<td>' + esc(s.casterMark || '') + '</td>' +
+          '<td class="reg">⚡ ' + (s.votes || 0) + '</td>' +
+          '<td>' +
+            '<button type="button" data-charge="' + esc(s.id) + '"' +
+              (voted[s.id] ? ' disabled class="charged"' : '') + '>' + (voted[s.id] ? 'CHARGED' : '+ CHARGE') + '</button> ' +
+            '<a class="rowlink" href="mailto:?subject=' + encodeURIComponent('A blexxing for you: ' + s.name) +
+              '&body=' + encodeURIComponent('A spell was bound in the BLEXX Grimoire —\n\n' +
+                s.name + ' · ' + s.registry.label + '\nHouse of ' + (s.houseName || '') +
+                '\n\nSee it, charge it, or order the kit:\nhttps://bitsofdust.github.io/blexx-spellbinder/') +
+              '">EMAIL ✉</a> ' +
+            '<button type="button" class="soon" disabled title="Stripe checkout opens soon">KIT $20 · SOON</button>' +
+          '</td>' +
+        '</tr>').join('') + '</table>';
+      el.querySelectorAll('[data-charge]').forEach(b => b.addEventListener('click', async () => {
+        b.disabled = true;
+        try {
+          await GRIMOIRE_CLOUD.vote(b.dataset.charge, voterId());
+          const v = JSON.parse(localStorage.getItem(VOTED_KEY) || '{}');
+          v[b.dataset.charge] = 1;
+          localStorage.setItem(VOTED_KEY, JSON.stringify(v));
+          renderPublicGrimoire();
+        } catch (e) { console.warn('charge failed:', e); b.disabled = false; }
+      }));
+    } catch (e) {
+      el.innerHTML = '<p class="empty">The Grimoire flickered — ' + esc(e.message) + '</p>';
+    }
   }
 
   $('map').addEventListener('submit', async e => {
@@ -601,6 +716,18 @@
 
   loadBrand();
   renderGrimoire();
+  $('sort-new').addEventListener('click', () => {
+    pubSort = 'new';
+    $('sort-new').classList.add('on'); $('sort-top').classList.remove('on');
+    renderPublicGrimoire();
+  });
+  $('sort-top').addEventListener('click', () => {
+    pubSort = 'top';
+    $('sort-top').classList.add('on'); $('sort-new').classList.remove('on');
+    renderPublicGrimoire();
+  });
+  window.addEventListener('grimoire-ready', renderPublicGrimoire);
+  renderPublicGrimoire();   // shows offline note until the module arrives
 </script>
 </body>
 </html>

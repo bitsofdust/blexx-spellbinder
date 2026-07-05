@@ -219,7 +219,7 @@ const MOTION_SEAL = (function () {
 
   const TECH_TEXT = [
     'SYS_ENTROPY: OVERLOAD', 'BLX-SEAL_INCOMING_VECTOR', 'REGISTRY: LOCKED',
-    'PULL DOUBLED 11:11', 'THE HOUR-KEEPER IS WATCHING', 'ALWAYS A BLEXXING',
+    'THE CITY IS LISTENING', 'WAIT FOR THE SIGNAL', 'GREEN LIGHT INCOMING',
   ];
 
   // seeded glitch pass — the entropy-engine language, but bound

@@ -118,27 +118,41 @@ function bindSpell(inputs, now) {
   // The cipher line: a hidden blessing, rendered in the Blexx alphabet.
   const hiddenBlessing = pick(rng, house.blessings);
 
-  // Cast window
+  // Cast window: moon phase + a city signal. The spell listens to the
+  // street, not a clock.
   const phase = moonPhase(now);
-  const window = pick(rng, LEXICON.WINDOWS);
+  const trigger = pick(rng, LEXICON.TRIGGERS);
   const castWindow = {
     moon: phase.name,
     moonLine: LEXICON.MOON_LINES[phase.name],
-    window: window,
-    text: 'Cast ' + LEXICON.MOON_LINES[phase.name] + '. Strongest during ' +
-      window.label + ' (' + window.when + ' — ' + window.note + ').',
+    trigger: trigger,
+    text: 'Cast ' + LEXICON.MOON_LINES[phase.name] +
+      '. The signal to begin: ' + trigger + '.',
   };
 
-  // Steps
+  // Release: drawn from the ACTUAL kit so the procedure never references
+  // a component that isn't in the box. Low charge simply fades.
+  const chargeKey = inputs.charge || 'medium';
+  let release;
+  if (chargeKey === 'low') {
+    release = LEXICON.RELEASES.low;
+  } else {
+    const releasable = chargeKey === 'high'
+      ? kit.filter(c => c.breakable && c.release)
+      : kit.filter(c => c.release);
+    release = releasable.length ? pick(rng, releasable).release : LEXICON.RELEASES.low;
+  }
+
+  // Steps — split/join because {kit} can appear more than once per template
   const kitNames = kit.map(c => c.name);
   const kitPhrase = kitNames.length > 1
     ? kitNames.slice(0, -1).join(', ') + ' and ' + kitNames[kitNames.length - 1]
     : kitNames[0];
   const steps = LEXICON.STEPS[modeKey].map(s => s
-    .replace('{kit}', kitPhrase)
-    .replace('{found}', found)
-    .replace('{window}', window.label + ' (' + window.when + ')')
-    .replace('{release}', LEXICON.RELEASES[inputs.charge || 'medium']));
+    .split('{kit}').join(kitPhrase)
+    .split('{found}').join(found)
+    .split('{trigger}').join(trigger)
+    .split('{release}').join(release));
 
   // Registry number: PROVISIONAL. Real numbers are minted by a Firestore
   // transaction at bind time (P3) — 900 per house, then the registry closes.
@@ -162,13 +176,14 @@ function bindSpell(inputs, now) {
     charge: inputs.charge || 'medium',
     components: {
       kit: kit,
+      keychain: LEXICON.KEYCHAIN,   // in every kit, always
       found: found,
     },
     incantation: lines,
     hiddenBlessing: hiddenBlessing,
     castWindow: castWindow,
-    duration: LEXICON.DURATIONS[inputs.charge || 'medium'],
-    release: LEXICON.RELEASES[inputs.charge || 'medium'],
+    duration: LEXICON.DURATIONS[chargeKey],
+    release: release,
     steps: steps,
     registry: {
       provisional: true,
