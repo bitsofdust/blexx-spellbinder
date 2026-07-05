@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THE SPELLBINDER — BLEXX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Brand-adjacent web stand-ins: Baloo 2 ≈ Urbane Rounded (chunky, rounded,
+     heaviest weight, tight tracking) · Inter = actual secondary per brandbook ·
+     Bitcount ≈ Bitcount Circle accent. Swap Baloo for licensed Urbane later. -->
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Inter:wght@400;500;600;700&family=Bitcount+Prop+Single:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --onyx: #131112;               /* brandbook onyx stone */
+    --accent: #00FF00;             /* slime, until a House claims you */
+    --house: #9F99F5;
+    --ink: #131112;
+    --paper: #f4f1ea;
+    --card: rgba(255,255,255,.05);
+    --edge: rgba(255,255,255,.13);
+    --font-display: "Baloo 2", "Arial Rounded MT Bold", sans-serif;
+    --font-body: "Inter", -apple-system, sans-serif;
+    --font-tech: "Bitcount Prop Single", "Courier New", monospace;
+  }
+  /* the divination recolors the room */
+  body[data-house="chance"]        { --accent: #FF9999; --house: #ED2024; }
+  body[data-house="devotion"]      { --accent: #9F99F5; --house: #882782; }
+  body[data-house="manifestation"] { --accent: #00FFF3; --house: #405EAB; }
+
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    background: var(--onyx);
+    background-image:
+      radial-gradient(900px 480px at 85% -8%, color-mix(in srgb, var(--house) 22%, transparent), transparent 70%),
+      radial-gradient(700px 420px at -10% 105%, color-mix(in srgb, var(--house) 13%, transparent), transparent 70%);
+    background-attachment: fixed;
+    color: #fff;
+    font-family: var(--font-body);
+    padding: 36px 40px;
+    min-height: 100vh;
+    transition: background-color .6s;
+  }
+
+  header { display: flex; align-items: center; gap: 24px; margin-bottom: 34px; }
+  #brand-logo { width: 240px; color: #fff; flex-shrink: 0; }
+  #brand-logo svg { width: 100%; height: auto; display: block; }
+  /* the brand SVGs ship with unfilled paths (default black); ink them */
+  #brand-logo svg path, .mark svg path { fill: currentColor; }
+  header .headmark { width: 26px; color: var(--accent); }
+  header .headmark svg { width: 100%; height: auto; display: block; }
+  header .headmark svg path { fill: currentColor; }
+  .masthead h1 {
+    font-family: var(--font-display); font-weight: 800; font-size: 28px;
+    letter-spacing: .06em; line-height: 1;
+  }
+  .masthead .sub {
+    font-family: var(--font-tech); color: var(--accent); font-size: 12px;
+    letter-spacing: .18em; margin-top: 7px;
+  }
+
+  /* house companion — the mascot keeps you company once blessed */
+  #companion {
+    position: fixed; right: 30px; bottom: 24px; width: 120px; z-index: 20;
+    color: var(--house); display: none; pointer-events: none;
+    filter: drop-shadow(0 6px 18px rgba(0,0,0,.55));
+    animation: bob 3.2s ease-in-out infinite;
+  }
+  body[data-house] #companion { display: block; }
+  #companion svg { width: 100%; height: auto; }
+  @keyframes bob { 0%,100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-10px) rotate(2deg); } }
+
+  .bench { display: grid; grid-template-columns: 350px 1fr; gap: 32px; align-items: start; }
+
+  /* ---- the map (input callouts) ---- */
+  .map {
+    border: 1.5px solid var(--edge); border-radius: 24px; padding: 26px;
+    background: var(--card); backdrop-filter: blur(6px);
+  }
+  .map h2 {
+    font-family: var(--font-display); font-weight: 800; font-size: 16px;
+    letter-spacing: .14em; padding-bottom: 12px; margin-bottom: 16px;
+    border-bottom: 1.5px solid var(--edge);
+  }
+  .field { margin-bottom: 15px; }
+  .field label {
+    display: block; font-size: 10.5px; font-weight: 700; letter-spacing: .14em;
+    color: var(--accent); margin-bottom: 6px; text-transform: uppercase;
+  }
+  .field select, .field input {
+    width: 100%; background: #f6f3ec; border: 2px solid transparent; color: var(--onyx);
+    font-family: var(--font-body); font-weight: 500; font-size: 14.5px;
+    padding: 12px 14px; border-radius: 14px; transition: border-color .2s, box-shadow .2s;
+  }
+  .field input::placeholder { color: #a09a90; font-weight: 400; }
+  .field select:focus, .field input:focus {
+    outline: none; border-color: var(--accent);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 25%, transparent);
+  }
+  button#bind {
+    width: 100%; margin-top: 10px; padding: 15px; cursor: pointer; border: 0;
+    border-radius: 999px;
+    font-family: var(--font-display); font-weight: 800; letter-spacing: .22em; font-size: 16px;
+    background: var(--accent); color: var(--onyx); transition: background-color .6s, transform .15s;
+  }
+  button#bind:hover { transform: scale(1.02); }
+  .note { font-size: 10.5px; color: rgba(255,255,255,.55); margin-top: 14px; line-height: 1.55; }
+
+  /* ---- the spellbook page preview ---- */
+  .sheetwrap { position: relative; max-width: 660px; }
+  .page {
+    background: var(--paper); color: var(--ink); padding: 26px 32px; position: relative;
+    min-height: 400px; border-radius: 18px;
+    box-shadow: 0 24px 60px rgba(0,0,0,.55);
+  }
+  .sheet-mascot { position: absolute; top: 84px; right: 28px; width: 48px; color: var(--house); }
+  .sheet-mascot svg { width: 100%; height: auto; display: block; }
+  .sheetwrap.proof .page::after {
+    content: 'PROOF — NOT YET BOUND';
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-weight: 800; font-size: 42px; letter-spacing: .1em;
+    color: var(--house); opacity: .13; transform: rotate(-24deg); pointer-events: none;
+    text-align: center;
+  }
+  .titleblock {
+    display: flex; align-items: stretch; border: 2px solid var(--ink);
+    font-family: var(--font-tech); font-size: 10px; letter-spacing: .08em; margin-bottom: 18px;
+  }
+  .titleblock > div { padding: 6px 10px; border-right: 2px solid var(--ink); display: flex; align-items: center; }
+  .titleblock > div:last-child { border-right: 0; margin-left: auto; }
+  .titleblock .mark { color: var(--house); padding: 4px 8px; }
+  .titleblock .mark svg { height: 26px; width: auto; display: block; }
+  .titleblock .reg { color: var(--house); font-weight: 600; }
+  .blessing {
+    font-family: var(--font-tech); font-size: 12px; letter-spacing: .22em;
+    color: var(--house); margin-bottom: 6px; text-transform: uppercase;
+  }
+  .spellname {
+    font-family: var(--font-display); font-weight: 800; font-size: 30px;
+    letter-spacing: .01em; line-height: 1.15; margin-bottom: 14px;
+  }
+  .grid2 { display: grid; grid-template-columns: 225px 1fr; gap: 22px; }
+  .sigilbox { border: 1px dashed var(--ink); border-radius: 12px; padding: 8px; color: var(--ink); }
+  .sigilbox canvas { width: 100%; height: auto; display: block; border-radius: 8px; background: #050507; }
+  .sigilbox .cap { font-family: var(--font-tech); font-size: 8.5px; letter-spacing: .16em; text-align: center; margin-top: 6px; }
+  .params { font-size: 12px; line-height: 1.75; }
+  .params b { color: var(--house); letter-spacing: .14em; font-size: 10px; font-weight: 700; }
+  section.block { margin-top: 18px; }
+  section.block h3 {
+    font-family: var(--font-display); font-weight: 700; font-size: 12px; letter-spacing: .24em;
+    color: var(--house); border-bottom: 1px solid var(--ink); padding-bottom: 4px; margin-bottom: 8px;
+  }
+  .components li, .steps li { font-size: 12.5px; line-height: 1.7; }
+  .components ul, .steps ol { padding-left: 20px; }
+  .components small { font-family: var(--font-tech); font-size: 9px; }
+  .incant p { font-size: 13.5px; font-style: italic; line-height: 1.8; }
+  .cipher-line { display: flex; gap: 4px; margin-top: 10px; color: var(--house); flex-wrap: wrap; }
+  .glyph svg { width: 22px; height: 22px; display: block; }
+  .glyph-gap { width: 12px; }
+  .cipher-cap { font-family: var(--font-tech); font-size: 9px; letter-spacing: .16em; margin-top: 5px; color: var(--ink); opacity: .6; }
+  .pagefoot { display: flex; justify-content: space-between; align-items: center; margin-top: 22px; border-top: 2px solid var(--ink); padding-top: 10px; }
+  .pagefoot .mark { color: var(--ink); }
+  .pagefoot .mark svg { height: 22px; width: auto; display: block; }
+  .pagefoot span { font-family: var(--font-tech); font-size: 9px; letter-spacing: .2em; }
+  .blocked { background: #3b0311; color: #ff9999; padding: 20px; font-size: 13px; letter-spacing: .06em; border-radius: 16px; }
+  /* the scry window floats free on the onyx — no paper frame */
+  .scry { display: flex; flex-direction: column; gap: 20px; align-items: center; justify-content: center; min-height: 480px; }
+  .scry canvas {
+    width: min(560px, 100%); height: auto; display: block;
+    border-radius: 28px; background: #050507;
+    border: 1.5px solid var(--edge);
+    box-shadow: 0 30px 80px rgba(0,0,0,.65), 0 0 60px rgba(255,255,255,.04);
+  }
+  .scry p { font-family: var(--font-tech); font-size: 12px; letter-spacing: .2em; color: rgba(255,255,255,.4); }
+  .await { display: flex; flex-direction: column; gap: 18px; align-items: center; justify-content: center; color: #999; min-height: 400px; padding: 34px; }
+  .await .mark { width: 42px; color: #c9c3b5; }
+  .await .mark svg { width: 100%; height: auto; }
+  .await .mark svg path { fill: currentColor; }
+  .await p { font-family: var(--font-tech); font-size: 12px; letter-spacing: .2em; }
+
+  /* ---- actions under the sheet ---- */
+  .actions { display: flex; gap: 12px; margin-top: 16px; }
+  .actions button {
+    flex: 1; padding: 13px; cursor: pointer; border: 2px solid rgba(255,255,255,.35);
+    border-radius: 999px;
+    font-family: var(--font-display); font-weight: 800; letter-spacing: .14em; font-size: 13px;
+    background: transparent; color: #fff; transition: transform .15s;
+  }
+  .actions button:hover { transform: scale(1.02); }
+  .actions button.primary { background: var(--accent); border-color: var(--accent); color: var(--onyx); }
+  .actions button:disabled { opacity: .5; cursor: wait; }
+  .lockline { font-family: var(--font-tech); font-size: 10px; letter-spacing: .16em; color: var(--accent); margin-top: 10px; }
+
+  /* ---- motion seal (animated gif) ---- */
+  .gifbox { margin-top: 16px; border: 1.5px solid var(--edge); border-radius: 20px; background: #050507; padding: 16px; display: flex; gap: 18px; align-items: flex-start; }
+  .gifbox img { width: 260px; height: 260px; display: block; border-radius: 12px; image-rendering: auto; }
+  .gifbox .meta { flex: 1; }
+  .gifbox .meta h4 { font-family: var(--font-display); font-weight: 800; font-size: 13px; letter-spacing: .2em; margin-bottom: 8px; color: var(--accent); }
+  .gifbox .meta p { font-size: 11px; line-height: 1.6; color: rgba(255,255,255,.6); margin-bottom: 12px; }
+  .gifbox .meta a {
+    display: inline-block; padding: 10px 16px; border: 0; border-radius: 999px;
+    background: var(--accent); color: var(--onyx);
+    font-family: var(--font-display); font-weight: 800; font-size: 12px; letter-spacing: .16em; text-decoration: none;
+  }
+  .sealprog { font-family: var(--font-tech); font-size: 10px; letter-spacing: .16em; color: var(--accent); margin-top: 10px; }
+
+  /* ---- house reveal overlay ---- */
+  #reveal {
+    position: fixed; inset: 0; z-index: 50; display: none;
+    align-items: center; justify-content: center; flex-direction: column; gap: 26px;
+    background: var(--house); color: #fff; text-align: center;
+  }
+  #reveal.on { display: flex; animation: revealIn .5s ease-out; }
+  #reveal .mascot { width: 200px; color: #fff; animation: mascotPop .6s cubic-bezier(.2,1.6,.4,1), markPulse 2.4s ease-in-out .6s infinite; }
+  #reveal .mascot svg { width: 100%; height: auto; }
+  #reveal .mark { width: 40px; color: #fff; opacity: .85; }
+  #reveal .mark svg { width: 100%; height: auto; }
+  #reveal .mark svg path { fill: currentColor; }
+  @keyframes mascotPop { from { transform: scale(.3) rotate(-12deg); opacity: 0; } to { transform: scale(1) rotate(0); opacity: 1; } }
+  #reveal h2 { font-family: var(--font-display); font-weight: 800; font-size: 44px; letter-spacing: .04em; max-width: 700px; line-height: 1.15; }
+  #reveal p { font-family: var(--font-tech); font-size: 13px; letter-spacing: .22em; opacity: .85; }
+  @keyframes revealIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes markPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+
+  /* ---- local grimoire ---- */
+  .grimoire { margin-top: 36px; border-top: 1px solid rgba(255,255,255,.3); padding-top: 16px; }
+  .grimoire h3 { font-family: var(--font-tech); font-size: 11px; letter-spacing: .2em; color: var(--accent); margin-bottom: 10px; }
+  .grimoire table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .grimoire td { padding: 6px 10px 6px 0; border-bottom: 1px solid rgba(255,255,255,.15); }
+  .grimoire .reg { font-family: var(--font-tech); letter-spacing: .08em; }
+  .grimoire .dot { display: inline-block; width: 10px; height: 10px; margin-right: 8px; }
+  .grimoire button { background: none; border: 1.5px solid rgba(255,255,255,.4); border-radius: 999px; color: #fff; font-family: var(--font-tech); font-size: 10px; letter-spacing: .14em; padding: 5px 12px; cursor: pointer; }
+  .grimoire button:hover { border-color: var(--accent); color: var(--accent); }
+  .grimoire .empty { color: rgba(255,255,255,.45); font-size: 12px; }
+
+  /* alphabet verification strip */
+  .strip { margin-top: 28px; border-top: 1px solid rgba(255,255,255,.3); padding-top: 16px; }
+  .strip h3 { font-family: var(--font-tech); font-size: 11px; letter-spacing: .2em; color: var(--accent); margin-bottom: 10px; }
+  .strip .row { display: flex; flex-wrap: wrap; gap: 6px; color: #fff; }
+  .strip .glyph { border: 1px solid rgba(255,255,255,.3); padding: 4px; }
+  .strip .glyph svg { width: 26px; height: 26px; display: block; }
+  .strip .glyph small { display: block; text-align: center; font-family: var(--font-tech); font-size: 8px; color: var(--accent); }
+</style>
+</head>
+<body>
+  <div id="reveal">
+    <div class="mascot"></div>
+    <h2></h2>
+    <p></p>
+    <div class="mark"></div>
+  </div>
+
+  <div id="companion" aria-hidden="true"></div>
+
+  <header>
+    <div id="brand-logo" aria-label="BLEXX"></div>
+    <div class="headmark" aria-hidden="true"></div>
+    <div class="masthead">
+      <h1>THE SPELLBINDER</h1>
+      <div class="sub">BIND A SPELL · BLEXX.ME</div>
+    </div>
+  </header>
+
+  <div class="bench">
+    <form class="map" id="map">
+      <h2>OPERATIONAL INPUTS</h2>
+      <div class="field">
+        <label>① Desire — what should the spell do?</label>
+        <select id="desire"></select>
+      </div>
+      <div class="field">
+        <label>② Detail phrase — optional, seeds the spell</label>
+        <input id="detail" maxlength="80" placeholder="…the job at the print shop">
+      </div>
+      <div class="field">
+        <label>③ Caster mark — name or initials</label>
+        <input id="caster" maxlength="24" placeholder="D.B.">
+      </div>
+      <div class="field">
+        <label>④ Gift blexxing — bound for (optional)</label>
+        <input id="giftFor" maxlength="24" placeholder="leave empty to bind for yourself">
+      </div>
+      <div class="field">
+        <label>⑤ Where it lives</label>
+        <select id="dwelling">
+          <option value="on-me">on me (carry / wear)</option>
+          <option value="in-place">in a place (place)</option>
+          <option value="as-act">as an act (use / apply)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>⑥ Charge</label>
+        <select id="charge">
+          <option value="low">low</option>
+          <option value="medium" selected>medium</option>
+          <option value="high">high — includes a breakable component</option>
+        </select>
+      </div>
+      <button id="bind" type="submit">COMPOSE ⟶</button>
+      <p class="note">PROOF STAGE — nothing uploads, tweak freely. Same inputs
+      compose the same spell, forever. The registry number is minted only when
+      you LOCK &amp; BIND.</p>
+    </form>
+
+    <div id="out"></div>
+  </div>
+
+  <div class="grimoire">
+    <h3>LOCAL GRIMOIRE — SPELLS BOUND ON THIS PRESS (FIRESTORE AT P3)</h3>
+    <div id="grimoire-list"></div>
+  </div>
+
+  <div class="strip">
+    <h3>ALPHABET VERIFICATION — 26 GLYPHS EXTRACTED FROM BLEXX_ALPHABET.PDF</h3>
+    <div class="row" id="alphabet-strip"></div>
+  </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="brand-assets.js?v=5"></script>
+<script src="lexicon.js?v=5"></script>
+<script src="engine.js?v=5"></script>
+<script src="sigil.js?v=5"></script>
+<script src="cipher.js?v=5"></script>
+<script src="pdf.js?v=5"></script>
+<script src="motion.js?v=5"></script>
+<script>
+  const $ = id => document.getElementById(id);
+  let current = null;        // the spell on the bench
+  let locked = false;
+  let stopSigil = null;      // living-sigil animation canceller
+
+  // ---- brand assets: embedded at build time (tools/build_assets.py) so the
+  // app needs no fetch() and branding renders even from file://
+  const BRAND = {
+    logo: EMBEDDED_ASSETS.logo,
+    mark: EMBEDDED_ASSETS.mark,
+    mascots: EMBEDDED_ASSETS.mascots,
+  };
+  function loadBrand() {
+    $('brand-logo').innerHTML = BRAND.logo;
+    document.querySelector('header .headmark').innerHTML = BRAND.mark;
+    document.querySelector('#reveal .mark').innerHTML = BRAND.mark;
+    showAwaiting();
+  }
+  function markSpan() { return '<div class="mark">' + BRAND.mark + '</div>'; }
+  function showAwaiting() {
+    if (stopSigil) { stopSigil(); stopSigil = null; }
+    $('out').innerHTML = '<div class="scry">' +
+      '<canvas id="idle-canvas" width="500" height="500"></canvas>' +
+      '<p>AWAITING INPUTS — THE PRESS IS SCRYING</p></div>';
+    try {
+      stopSigil = MOTION_SEAL.idle($('idle-canvas'));
+    } catch (e) {
+      console.error('idle scry failed, falling back to the rune:', e);
+      $('out').innerHTML = '<div class="page await"><div class="mark">' + BRAND.mark +
+        '</div><p>AWAITING INPUTS</p></div>';
+    }
+  }
+
+  // ---- local registry mint + grimoire (localStorage until Firestore at P3)
+  const REG_KEY = 'blx-registry-v0', GRIM_KEY = 'blx-grimoire-v0';
+  function mintRegistry(spell) {
+    const counters = JSON.parse(localStorage.getItem(REG_KEY) || '{}');
+    const code = LEXICON.HOUSES[spell.house].code;
+    const n = (counters[code] || 0) + 1;
+    if (n > 900) return null;                       // the registry closes
+    counters[code] = n;
+    localStorage.setItem(REG_KEY, JSON.stringify(counters));
+    return { provisional: false, number: n, label: 'BLX-' + code + '-' + String(n).padStart(3, '0') + '/900' };
+  }
+  function grimoire() { return JSON.parse(localStorage.getItem(GRIM_KEY) || '[]'); }
+  function saveToGrimoire(spell) {
+    const g = grimoire();
+    g.unshift({ savedAt: new Date().toISOString(), spell });
+    localStorage.setItem(GRIM_KEY, JSON.stringify(g));
+    renderGrimoire();
+  }
+  function renderGrimoire() {
+    const g = grimoire();
+    if (!g.length) {
+      $('grimoire-list').innerHTML = '<p class="empty">No spells bound on this press yet.</p>';
+      return;
+    }
+    $('grimoire-list').innerHTML = '<table>' + g.map((e, i) =>
+      '<tr>' +
+        '<td><span class="dot" style="background:' + e.spell.houseColor + '"></span>' + esc(e.spell.name) + '</td>' +
+        '<td class="reg">' + esc(e.spell.registry.label) + '</td>' +
+        '<td>' + esc(e.spell.casterMark) + '</td>' +
+        '<td>' + new Date(e.savedAt).toLocaleDateString() + '</td>' +
+        '<td><button data-dl="' + i + '">PAGE ⭳</button> ' +
+            '<button data-gif="' + i + '">SEAL ▶</button></td>' +
+      '</tr>').join('') + '</table><div id="grim-sealbox"></div>';
+    document.querySelectorAll('[data-dl]').forEach(b =>
+      b.addEventListener('click', () => SPELLBOOK_PDF.build(grimoire()[+b.dataset.dl].spell, BRAND.mark)));
+    document.querySelectorAll('[data-gif]').forEach(b =>
+      b.addEventListener('click', () => {
+        const entry = grimoire()[+b.dataset.gif];
+        compileSeal(entry.spell, $('grim-sealbox'), b, entry.savedAt.slice(0, 10));
+      }));
+  }
+
+  // ---- motion seal compile + presentation
+  async function compileSeal(spell, container, btn, dateStr) {
+    if (btn) btn.disabled = true;
+    container.innerHTML = '<div class="sealprog">COMPILING MOTION SEAL — BINDING THE GLITCHES… 0%</div>';
+    const prog = container.querySelector('.sealprog');
+    try {
+      const seal = await MOTION_SEAL.compile(spell, BRAND.mark, {
+        dateStr: dateStr,
+        onProgress: p => { prog.textContent = 'COMPILING MOTION SEAL — BINDING THE GLITCHES… ' + Math.round(p * 100) + '%'; },
+      });
+      container.innerHTML =
+        '<div class="gifbox">' +
+          '<img src="' + seal.url + '" alt="motion seal of ' + esc(spell.name) + '">' +
+          '<div class="meta">' +
+            '<h4>MOTION SEAL · ' + esc(spell.registry.label) + ' · ' + seal.sizeKB + 'KB</h4>' +
+            '<p>The moving image of this spell — same seed, same glitches, forever. ' +
+            'Download it, set it loose in a group chat, or email it as a blexxing. ' +
+            'Hosted links (for one-tap emailing) arrive with the Grimoire at P3.</p>' +
+            '<a href="' + seal.url + '" download="' + seal.filename + '">DOWNLOAD .GIF ⭳</a>' +
+          '</div>' +
+        '</div>';
+    } catch (e) {
+      container.innerHTML = '<div class="sealprog">SEAL COMPILE FAILED — ' + esc(e.message) + '</div>';
+    }
+    if (btn) btn.disabled = false;
+  }
+
+  // populate desires
+  for (const d of LEXICON.DESIRES) {
+    const opt = document.createElement('option');
+    opt.value = d.id; opt.textContent = d.label;
+    $('desire').appendChild(opt);
+  }
+
+  function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+  // ---- the house reveal moment
+  function setCompanion(house) {
+    $('companion').innerHTML = BRAND.mascots[house] || '';
+  }
+  function houseReveal(spell) {
+    return new Promise(resolve => {
+      document.body.dataset.house = spell.house;
+      setCompanion(spell.house);
+      const r = $('reveal');
+      r.style.background = spell.houseColor;
+      r.querySelector('.mascot').innerHTML = BRAND.mascots[spell.house] || '';
+      r.querySelector('h2').textContent = spell.blessing.toUpperCase();
+      r.querySelector('p').textContent = LEXICON.HOUSES[spell.house].voice.toUpperCase();
+      r.classList.add('on');
+      setTimeout(() => { r.classList.remove('on'); resolve(); }, 2600);
+    });
+  }
+
+  async function renderSpell(spell, state) {
+    if (spell.blocked) {
+      if (stopSigil) { stopSigil(); stopSigil = null; }
+      document.body.removeAttribute('data-house');
+      $('out').innerHTML = '<div class="blocked">THE SPELLBINDER DECLINES. ' +
+        'Always a blexxing, never a curse — rephrase the working in someone\'s favor.</div>';
+      return;
+    }
+    document.body.dataset.house = spell.house;
+    setCompanion(spell.house);
+
+    const c = spell.components;
+    const compItems = c.kit.map(k =>
+      '<li>' + esc(k.name) + ' — <i>' + esc(k.role) + '</i> <small>[' + esc(k.sku) + ']</small></li>'
+    ).join('') + '<li><b>FOUND:</b> ' + esc(c.found) + ' <i>(you supply this)</i></li>';
+
+    const actions = state === 'proof'
+      ? '<div class="actions">' +
+          '<button type="button" id="act-adjust">ADJUST INPUTS</button>' +
+          '<button type="button" id="act-lock" class="primary">LOCK &amp; BIND ⟶</button>' +
+        '</div>'
+      : '<div class="actions">' +
+          '<button type="button" id="act-download" class="primary">SPELLBOOK PAGE ⭳</button>' +
+          '<button type="button" id="act-seal">COMPILE MOTION SEAL ▶</button>' +
+          '<button type="button" id="act-new">BIND ANOTHER</button>' +
+        '</div>' +
+        '<div class="lockline">BOUND · ' + esc(spell.registry.label) + ' · THE SPELL IS YOURS. KIT ORDERS OPEN AT P3.</div>' +
+        '<div id="sealbox"></div>';
+
+    $('out').innerHTML =
+      '<div class="sheetwrap' + (state === 'proof' ? ' proof' : '') + '">' +
+      '<div class="page">' +
+        '<div class="titleblock">' +
+          markSpan() +
+          '<div>BLEXX STUDIOS</div><div>SHEET: SPELL / 1 OF 1</div>' +
+          '<div>' + esc(spell.modeLabel) + ' · ' + esc(spell.artifactType.toUpperCase()) + '</div>' +
+          '<div class="reg">' + esc(spell.registry.label) + (spell.registry.provisional ? ' *' : '') + '</div>' +
+        '</div>' +
+        '<div class="sheet-mascot">' + (BRAND.mascots[spell.house] || '') + '</div>' +
+        '<div class="blessing">' + esc(spell.blessing) + '</div>' +
+        '<div class="spellname">' + esc(spell.name) + '</div>' +
+        '<div class="grid2">' +
+          '<div class="sigilbox"><canvas id="sigil-live" width="500" height="500"></canvas>' +
+            '<div class="cap">FIG. A — LIVING SIGIL · SHAPE GRAMMAR · TESSELLATE + STACK</div></div>' +
+          '<div class="params">' +
+            '<b>DESIRE</b> · ' + esc(spell.desire) + '<br>' +
+            (spell.giftFor ? '<b>BOUND FOR</b> · ' + esc(spell.giftFor) + '<br>' : '') +
+            '<b>CASTER</b> · ' + esc(spell.casterMark) + '<br>' +
+            '<b>CHARGE</b> · ' + esc(spell.charge.toUpperCase()) + '<br>' +
+            '<b>CAST WINDOW</b> · ' + esc(spell.castWindow.text) + '<br>' +
+            '<b>DURATION</b> · ' + esc(spell.duration) +
+          '</div>' +
+        '</div>' +
+        '<section class="block components"><h3>COMPONENTS</h3><ul>' + compItems + '</ul></section>' +
+        '<section class="block incant"><h3>THE WORDS</h3>' +
+          spell.incantation.map(l => '<p>' + esc(l) + '</p>').join('') +
+          '<div class="cipher-line" id="cipher"></div>' +
+          '<div class="cipher-cap">SEALED LINE — DECODE WITH THE BLEXX ALPHABET</div>' +
+        '</section>' +
+        '<section class="block steps"><h3>THE PROCEDURE</h3><ol>' +
+          spell.steps.map(s => '<li>' + esc(s) + '</li>').join('') + '</ol></section>' +
+        '<div class="pagefoot">' + markSpan() +
+          '<span>ALWAYS A BLEXXING · NEVER A CURSE</span>' +
+          '<span>HOUSE OF ' + esc(spell.houseName) + '</span>' +
+        '</div>' +
+      '</div>' + actions + '</div>';
+
+    // Wire the actions FIRST — decorative failures below must never
+    // disable LOCK & BIND / downloads.
+    if (state === 'proof') {
+      $('act-adjust').addEventListener('click', () => { $('detail').focus(); });
+      $('act-lock').addEventListener('click', lockAndBind);
+    } else {
+      $('act-download').addEventListener('click', () => SPELLBOOK_PDF.build(current, BRAND.mark));
+      $('act-seal').addEventListener('click', () => compileSeal(current, $('sealbox'), $('act-seal')));
+      $('act-new').addEventListener('click', () => {
+        locked = false; current = null;
+        document.body.removeAttribute('data-house');
+        $('map').reset(); showAwaiting();
+      });
+    }
+
+    if (stopSigil) { stopSigil(); stopSigil = null; }
+    try {
+      stopSigil = MOTION_SEAL.animate($('sigil-live'), spell);
+    } catch (e) {
+      console.error('living sigil failed, falling back to static:', e);
+      document.querySelector('.sigilbox').innerHTML =
+        generateSigil(spell.seed, spell.houseColor) +
+        '<div class="cap">FIG. A — SIGIL · SHAPE GRAMMAR · TESSELLATE + STACK</div>';
+    }
+
+    try {
+      await CIPHER.render($('cipher'), spell.hiddenBlessing);
+    } catch (e) {
+      console.error('cipher render failed:', e);
+    }
+  }
+
+  function lockAndBind() {
+    if (!current || locked) return;
+    const minted = mintRegistry(current);
+    if (!minted) {
+      alert('The House of ' + current.houseName + ' registry has closed at 900/900.');
+      return;
+    }
+    current.registry = minted;
+    locked = true;
+    saveToGrimoire(current);           // Firestore publish goes here at P3
+    renderSpell(current, 'bound');
+  }
+
+  $('map').addEventListener('submit', async e => {
+    e.preventDefault();
+    const wasHouse = current && !current.blocked ? current.house : null;
+    locked = false;
+    current = bindSpell({
+      desireId: $('desire').value,
+      detail: $('detail').value,
+      casterMark: $('caster').value,
+      giftFor: $('giftFor').value,
+      dwelling: $('dwelling').value,
+      charge: $('charge').value,
+    });
+    if (!current.blocked) {
+      console.log('COMPOSED:', current);
+      if (current.house !== wasHouse) await houseReveal(current);   // reveal only on a new divination
+    }
+    renderSpell(current, 'proof');
+  });
+
+  // alphabet strip
+  (async () => {
+    const strip = $('alphabet-strip');
+    for (const ch of 'abcdefghijklmnopqrstuvwxyz') {
+      const cell = document.createElement('span');
+      cell.className = 'glyph';
+      try { cell.innerHTML = await CIPHER.glyph(ch); }
+      catch (e) { cell.textContent = '✗'; }
+      const label = document.createElement('small');
+      label.textContent = ch.toUpperCase();
+      cell.appendChild(label);
+      strip.appendChild(cell);
+    }
+  })();
+
+  loadBrand();
+  renderGrimoire();
+</script>
+</body>
+</html>
