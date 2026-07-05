@@ -270,7 +270,7 @@
       </div>
       <div class="field">
         <label>② Detail phrase — optional, seeds the spell</label>
-        <input id="detail" maxlength="80" placeholder="…the job at the print shop">
+        <input id="detail" maxlength="80" placeholder="…the yes I've been waiting for">
       </div>
       <div class="field">
         <label>③ Caster mark — name or initials</label>
@@ -306,12 +306,12 @@
   </div>
 
   <div class="grimoire">
-    <h3>LOCAL GRIMOIRE — SPELLS BOUND ON THIS PRESS (FIRESTORE AT P3)</h3>
+    <h3>LOCAL GRIMOIRE — SPELLS BOUND ON THIS DEVICE</h3>
     <div id="grimoire-list"></div>
   </div>
 
   <div class="strip">
-    <h3>ALPHABET VERIFICATION — 26 GLYPHS EXTRACTED FROM BLEXX_ALPHABET.PDF</h3>
+    <h3>THE BLEXX ALPHABET — 26 GLYPHS · EVERY SPELL CARRIES A SEALED LINE</h3>
     <div class="row" id="alphabet-strip"></div>
   </div>
 
@@ -347,7 +347,7 @@
     if (stopSigil) { stopSigil(); stopSigil = null; }
     $('out').innerHTML = '<div class="scry">' +
       '<canvas id="idle-canvas" width="500" height="500"></canvas>' +
-      '<p>AWAITING INPUTS — THE PRESS IS SCRYING</p></div>';
+      '<p>AWAITING INPUTS — THE SPELLBINDER IS SCRYING</p></div>';
     try {
       stopSigil = MOTION_SEAL.idle($('idle-canvas'));
     } catch (e) {
@@ -378,7 +378,7 @@
   function renderGrimoire() {
     const g = grimoire();
     if (!g.length) {
-      $('grimoire-list').innerHTML = '<p class="empty">No spells bound on this press yet.</p>';
+      $('grimoire-list').innerHTML = '<p class="empty">No spells bound here yet. The Spellbinder waits.</p>';
       return;
     }
     $('grimoire-list').innerHTML = '<table>' + g.map((e, i) =>
